@@ -22,7 +22,10 @@ from crossbar.edge.node.node import FabricNode
 from crossbar.edge.worker.realmstore import RealmStoreDatabase
 from crossbar.edge.worker.router import ExtRouterController
 from crossbar.edge.worker.hostmonitor import HostMonitor, HostMonitorProcess
-from crossbar.edge.worker.xbrmm import MarketplaceController, MarketplaceControllerProcess
+try:
+    from crossbar.edge.worker.xbrmm import MarketplaceController, MarketplaceControllerProcess
+except ImportError:
+    MarketplaceController = MarketplaceControllerProcess = None
 from crossbar.edge.webservice import RouterWebServicePairMe
 
 

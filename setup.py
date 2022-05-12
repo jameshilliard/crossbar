@@ -32,7 +32,7 @@ install_requires = []
 # https://mike.zwobble.org/2013/05/adding-git-or-hg-or-svn-dependencies-in-setup-py/
 dependency_links = []
 
-if False:
+if True:
     extras_require = {}
 else:
     extras_require = {
@@ -70,6 +70,9 @@ os.environ['SODIUM_INSTALL'] = 'bundled'
 
 # enforce use of pure Python py-ubjson (no Cython)
 os.environ['PYUBJSON_NO_EXTENSION'] = '1'
+
+# strip xbr
+os.environ['AUTOBAHN_STRIP_XBR'] = '1'
 
 # now actually call into setuptools ..
 setup(

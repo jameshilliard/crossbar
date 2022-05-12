@@ -5,7 +5,10 @@
 #
 ###############################################################################
 
-from autobahn import xbr
+try:
+    from autobahn import xbr
+except ImportError:
+    xbr = None
 from crossbar._version import __version__, __build__
 
 import txaio

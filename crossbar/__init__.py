@@ -24,55 +24,59 @@ import humanize  # noqa
 # monkey patch, see:
 # https://github.com/ethereum/web3.py/issues/1201
 # https://github.com/ethereum/eth-abi/pull/88
-from eth_abi import abi
+try:
+    from eth_abi import abi
+except ImportError:
+    abi = None
 
-if not hasattr(abi, 'collapse_type'):
+if abi:
+    if not hasattr(abi, 'collapse_type'):
 
-    def collapse_type(base, sub, arrlist):
-        return base + sub + ''.join(map(repr, arrlist))
+        def collapse_type(base, sub, arrlist):
+            return base + sub + ''.join(map(repr, arrlist))
 
-    abi.collapse_type = collapse_type
+        abi.collapse_type = collapse_type
 
-if not hasattr(abi, 'process_type'):
-    from eth_abi.grammar import (
-        TupleType,
-        normalize,
-        parse,
-    )
+    if not hasattr(abi, 'process_type'):
+        from eth_abi.grammar import (
+            TupleType,
+            normalize,
+            parse,
+        )
 
-    def process_type(type_str):
-        normalized_type_str = normalize(type_str)
-        abi_type = parse(normalized_type_str)
+        def process_type(type_str):
+            normalized_type_str = normalize(type_str)
+            abi_type = parse(normalized_type_str)
 
-        type_str_repr = repr(type_str)
-        if type_str != normalized_type_str:
-            type_str_repr = '{} (normalized to {})'.format(
-                type_str_repr,
-                repr(normalized_type_str),
-            )
+            type_str_repr = repr(type_str)
+            if type_str != normalized_type_str:
+                type_str_repr = '{} (normalized to {})'.format(
+                    type_str_repr,
+                    repr(normalized_type_str),
+                )
 
-        if isinstance(abi_type, TupleType):
-            raise ValueError("Cannot process type {}: tuple types not supported".format(type_str_repr, ))
+            if isinstance(abi_type, TupleType):
+                raise ValueError("Cannot process type {}: tuple types not supported".format(type_str_repr, ))
 
-        abi_type.validate()
+            abi_type.validate()
 
-        sub = abi_type.sub
-        if isinstance(sub, tuple):
-            sub = 'x'.join(map(str, sub))
-        elif isinstance(sub, int):
-            sub = str(sub)
-        else:
-            sub = ''
+            sub = abi_type.sub
+            if isinstance(sub, tuple):
+                sub = 'x'.join(map(str, sub))
+            elif isinstance(sub, int):
+                sub = str(sub)
+            else:
+                sub = ''
 
-        arrlist = abi_type.arrlist
-        if isinstance(arrlist, tuple):
-            arrlist = list(map(list, arrlist))
-        else:
-            arrlist = []
+            arrlist = abi_type.arrlist
+            if isinstance(arrlist, tuple):
+                arrlist = list(map(list, arrlist))
+            else:
+                arrlist = []
 
-        return abi_type.base, sub, arrlist
+            return abi_type.base, sub, arrlist
 
-    abi.process_type = process_type
+        abi.process_type = process_type
 
 # https://stackoverflow.com/a/40846742/884770
 # https://github.com/numpy/numpy/pull/432/commits/170ed4e33d6196d724dc18ddcd42311c291b4587?diff=split

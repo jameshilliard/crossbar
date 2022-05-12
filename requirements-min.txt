@@ -1,18 +1,15 @@
 attrs>=17.2.0
-autobahn[twisted,encryption,compress,serialization,scram,xbr]>=22.4.1
+autobahn[twisted,encryption,compress,serialization,scram]>=22.4.1
 base58>=2.1.0
 bcrypt>=3.1.6
 bitstring>=3.1.5
 cbor2>=5.2.0
-cfxdb>=22.4.1
+git+https://github.com/jameshilliard/cfxdb.git@no-xbr#egg=cfxdb
 click>=7.0
 colorama>=0.4.3
 constantly>=15.1.0
 cookiecutter>=1.6.0
 cryptography>=2.6.1
-docker>=3.5.0
-eth-account>=0.5.4
-eth-typing>=2.2.2
 flask>=1.1.1
 git+https://github.com/crossbario/py-cid.git@remove-dep-upper-limits#egg=py-cid
 git+https://github.com/crossbario/py-multihash.git@remove-dep-version-limits#egg=py-multihash
@@ -30,18 +27,16 @@ jinja2_highlight>=0.6.1
 jinja2>=2.10.1
 lmdb>=1.1.1
 # ImportError: cannot import name 'soft_unicode' from 'markupsafe'
-MarkupSafe>=1.1.1,<2
+MarkupSafe>=2.1.1
 mistune>=0.8.4
 morphys>=1.0
 netaddr>=0.8.0
-numpy>=1.20.0
 parsimonious>=0.8.1
 passlib>=1.7.1
 # twisted/http2 needs <2:
 priority>=1.1,<2.0
 prompt-toolkit>=2.0.10
 psutil>=5.8.0
-py-eth-sig-utils>=0.4.0
 py-ubjson>=0.9.0
 pyasn1-modules>=0.2.4
 pyasn1>=0.4.5
@@ -74,10 +69,8 @@ validate-email>=1.3
 # use vmprof master until https://github.com/vmprof/vmprof-python/issues/240 is fixed
 git+https://github.com/vmprof/vmprof-python.git#egg=vmprof
 watchdog>=0.8.3
-web3>=5.13.1
 # ImportError: cannot import name 'escape' from 'werkzeug.utils'
-werkzeug>=0.14.1,<2
+werkzeug>=2.1.2
 wsaccel>=0.6.2; platform_python_implementation=='CPython'
-xbr>=21.2.1
 zlmdb>=22.4.1
 zope.interface>=4.4.2

@@ -18,8 +18,11 @@ import pyqrcode
 from nacl import signing
 from nacl import encoding
 
-from eth_keys import KeyAPI
-from eth_keys.backends import NativeECCBackend
+try:
+    from eth_keys import KeyAPI
+    from eth_keys.backends import NativeECCBackend
+except ImportError:
+    KeyAPI = NativeECCBackend = None
 
 import txaio
 from autobahn.util import utcnow
@@ -195,16 +198,17 @@ def _maybe_generate_node_key(cbdir, privfile='key.priv', pubfile='key.pub'):
             raise Exception(("Inconsistent node private key file {} - public-key-ed25519 doesn't"
                              " correspond to private-key-ed25519").format(privkey_path))
 
-        eth_pubadr = None
-        eth_privkey_seed_hex = priv_tags.get('private-key-eth', None)
-        if eth_privkey_seed_hex:
-            eth_privkey_seed = binascii.a2b_hex(eth_privkey_seed_hex)
-            eth_privkey = KeyAPI(NativeECCBackend).PrivateKey(eth_privkey_seed)
-            eth_pubadr = eth_privkey.public_key.to_checksum_address()
-            if 'public-adr-eth' in priv_tags:
-                if priv_tags['public-adr-eth'] != eth_pubadr:
-                    raise Exception(("Inconsistent node private key file {} - public-adr-eth doesn't"
-                                     " correspond to private-key-eth").format(privkey_path))
+        if KeyAPI:
+            eth_pubadr = None
+            eth_privkey_seed_hex = priv_tags.get('private-key-eth', None)
+            if eth_privkey_seed_hex:
+                eth_privkey_seed = binascii.a2b_hex(eth_privkey_seed_hex)
+                eth_privkey = KeyAPI(NativeECCBackend).PrivateKey(eth_privkey_seed)
+                eth_pubadr = eth_privkey.public_key.to_checksum_address()
+                if 'public-adr-eth' in priv_tags:
+                    if priv_tags['public-adr-eth'] != eth_pubadr:
+                        raise Exception(("Inconsistent node private key file {} - public-adr-eth doesn't"
+                                         " correspond to private-key-eth").format(privkey_path))
 
         if os.path.exists(pubkey_path):
             pub_tags = _parse_node_key(pubkey_path, private=False)
@@ -218,7 +222,7 @@ def _maybe_generate_node_key(cbdir, privfile='key.priv', pubfile='key.pub'):
                     ("Inconsistent node public key file {} - public-key-ed25519 doesn't"
                      " correspond to private-key-ed25519 in private key file {}").format(pubkey_path, privkey_path))
 
-            if pub_tags.get('public-adr-eth', None) != eth_pubadr:
+            if KeyAPI and pub_tags.get('public-adr-eth', None) != eth_pubadr:
                 raise Exception(
                     ("Inconsistent node public key file {} - public-adr-eth doesn't"
                      " correspond to private-key-eth in private key file {}").format(pubkey_path, privkey_path))
@@ -235,8 +239,7 @@ def _maybe_generate_node_key(cbdir, privfile='key.priv', pubfile='key.pub'):
                 ('node-authid', priv_tags.get('node-authid', None)),
                 ('node-cluster-ip', priv_tags.get('node-cluster-ip', None)),
                 ('public-key-ed25519', pubkey_hex),
-                ('public-adr-eth', eth_pubadr),
-            ])
+            ] + ([('public-adr-eth', eth_pubadr)] if KeyAPI else []))
             msg = 'Crossbar.io node public key\n\n'
             _write_node_key(pubkey_path, pub_tags, msg)
 
@@ -253,11 +256,12 @@ def _maybe_generate_node_key(cbdir, privfile='key.priv', pubfile='key.pub'):
         pubkey = privkey.verify_key
         pubkey_hex = pubkey.encode(encoder=encoding.HexEncoder).decode('ascii')
 
-        # Node Ethereum key
-        eth_privkey_seed = os.urandom(32)
-        eth_privkey_seed_hex = binascii.b2a_hex(eth_privkey_seed).decode()
-        eth_privkey = KeyAPI(NativeECCBackend).PrivateKey(eth_privkey_seed)
-        eth_pubadr = eth_privkey.public_key.to_checksum_address()
+        if KeyAPI:
+            # Node Ethereum key
+            eth_privkey_seed = os.urandom(32)
+            eth_privkey_seed_hex = binascii.b2a_hex(eth_privkey_seed).decode()
+            eth_privkey = KeyAPI(NativeECCBackend).PrivateKey(eth_privkey_seed)
+            eth_pubadr = eth_privkey.public_key.to_checksum_address()
 
         if 'CROSSBAR_NODE_ID' in os.environ and os.environ['CROSSBAR_NODE_ID'].strip() != '':
             node_authid = os.environ['CROSSBAR_NODE_ID']
@@ -284,22 +288,22 @@ def _maybe_generate_node_key(cbdir, privfile='key.priv', pubfile='key.pub'):
             ('node-authid', node_authid),
             ('node-cluster-ip', node_cluster_ip),
             ('public-key-ed25519', pubkey_hex),
-            ('public-adr-eth', eth_pubadr),
-        ])
+        ] + ([('public-adr-eth', eth_pubadr)] if KeyAPI else []))
         msg = 'Crossbar.io node public key\n\n'
         _write_node_key(pubkey_path, tags, msg)
 
         # now, add the private key and write the private file
         tags['private-key-ed25519'] = privkey_hex
-        tags['private-key-eth'] = eth_privkey_seed_hex
+        if KeyAPI:
+            tags['private-key-eth'] = eth_privkey_seed_hex
         msg = 'Crossbar.io node private key - KEEP THIS SAFE!\n\n'
         _write_node_key(privkey_path, tags, msg)
 
         log.info(
-            'New node key pair generated! public-key-ed25519={pubkey}, node-authid={node_authid}, public-adr-eth={eth_pubadr}',
+            'New node key pair generated! public-key-ed25519={pubkey}, node-authid={node_authid}{public_adr_eth}',
             pubkey=hlid('0x' + pubkey_hex),
             node_authid=node_authid,
-            eth_pubadr=hlid(eth_pubadr))
+            public_adr_eth=', public-adr-eth={eth_pubadr}'.format(eth_pubadr=hlid(eth_pubadr)) if KeyAPI else '')
 
         was_new = True
 
