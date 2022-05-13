@@ -15,7 +15,6 @@ from pprint import pformat
 from pathlib import Path
 
 import requests
-import numpy as np
 import web3
 import multihash
 from hexbytes import HexBytes
@@ -219,7 +218,7 @@ class MarketplaceController(WorkerController):
                     self._xbrmm.ipfs_files[txn, file_hash] = ipfs_file
             else:
                 ipfs_file.retries = ipfs_file.retries + 1
-                ipfs_file.errored_at = np.datetime64(time_ns(), 'ns')
+                ipfs_file.errored_at = zlmdb.datetime64(time_ns())
                 with self._db.begin(write=True) as txn:
                     self._xbrmm.ipfs_files[txn, file_hash] = ipfs_file
 
@@ -357,7 +356,7 @@ class MarketplaceController(WorkerController):
                 else:
                     member = cfxdb.xbr.member.Member()
                     member.address = member_adr
-                    member.timestamp = np.datetime64(time_ns(), 'ns')
+                    member.timestamp = zlmdb.datetime64(time_ns())
                     member.registered = args.registered
                     member.eula = args.eula
                     member.profile = args.profile
@@ -414,7 +413,7 @@ class MarketplaceController(WorkerController):
                 else:
                     market = cfxdb.xbr.market.Market()
                     market.market = market_id
-                    market.timestamp = np.datetime64(time_ns(), 'ns')
+                    market.timestamp = zlmdb.datetime64(time_ns())
 
                     # FIXME
                     # market.created = args.created
@@ -479,7 +478,7 @@ class MarketplaceController(WorkerController):
                                   tx_hash=hlid('0x' + binascii.b2a_hex(transactionHash).decode()))
                 else:
                     actor = cfxdb.xbr.actor.Actor()
-                    actor.timestamp = np.datetime64(time_ns(), 'ns')
+                    actor.timestamp = zlmdb.datetime64(time_ns())
                     actor.market = market_id
                     actor.actor = actor_adr
                     actor.actor_type = actor_type
@@ -530,7 +529,7 @@ class MarketplaceController(WorkerController):
 
             catalog_oid = uuid.UUID(bytes=args.catalogId)
             owner = bytes(HexBytes(args.owner))
-            created = np.datetime64(time_ns(), 'ns')
+            created = zlmdb.datetime64(time_ns())
             with self._db.begin(write=True) as txn:
                 catalog = cfxdb.xbr.catalog.Catalog()
                 catalog.oid = catalog_oid
@@ -610,7 +609,7 @@ class MarketplaceController(WorkerController):
             # FIXME
             # channel.member_oid = member_oid
             channel.channel_oid = channel_oid
-            channel.timestamp = np.datetime64(time_ns(), 'ns')
+            channel.timestamp = zlmdb.datetime64(time_ns())
             # channel.open_at = None
 
             # FIXME: should read that from even args after deployment of
@@ -811,7 +810,7 @@ class MarketplaceController(WorkerController):
 
         with self._db.begin(write=True) as txn:
             block = cfxdb.xbr.block.Block()
-            block.timestamp = np.datetime64(time_ns(), 'ns')
+            block.timestamp = zlmdb.datetime64(time_ns())
             block.block_number = block_number
             # FIXME
             # block.block_hash = bytes()

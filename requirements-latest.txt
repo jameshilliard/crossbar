@@ -1,10 +1,10 @@
 attrs>=17.2.0
-git+https://github.com/crossbario/autobahn-python.git@master#egg=autobahn[twisted,encryption,compress,serialization,scram,xbr]
+git+https://github.com/jameshilliard/autobahn-python.git@datetime64#egg=autobahn[twisted,encryption,compress,serialization,scram,xbr]
 base58>=2.1.0
 bcrypt>=3.1.6
 bitstring>=3.1.5
 cbor2>=5.2.0
-git+https://github.com/crossbario/cfxdb.git@master#egg=cfxdb
+git+https://github.com/jameshilliard/cfxdb.git@datetime64#egg=cfxdb
 click>=7.0
 colorama>=0.4.3
 constantly>=15.1.0
@@ -34,7 +34,6 @@ MarkupSafe>=1.1.1,<2
 mistune>=0.8.4
 morphys>=1.0
 netaddr>=0.8.0
-numpy>=1.20.0
 parsimonious>=0.8.1
 passlib>=1.7.1
 # twisted/http2 needs <2:
@@ -77,5 +76,5 @@ web3>=5.13.1
 werkzeug>=0.14.1,<2
 wsaccel>=0.6.2; platform_python_implementation=='CPython'
 xbr>=21.2.1
-git+https://github.com/crossbario/zlmdb.git@master#egg=zlmdb
+git+https://github.com/jameshilliard/zlmdb.git@datetime64-type#egg=zlmdb
 zope.interface>=4.4.2

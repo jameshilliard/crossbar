@@ -10,7 +10,7 @@ from crossbar._util import hlid
 txaio.use_twisted()  # noqa
 from txaio import make_logger, time_ns
 
-import numpy as np
+from zlmdb import datetime64
 
 from autobahn.wamp import register, CallDetails
 from autobahn.xbr import recover_eip712_market_member_login, is_cs_pubkey, is_signature, \
@@ -160,7 +160,7 @@ class Authenticator:
                         user_key = cfxdb.xbrmm.UserKey()
                         user_key.owner = account.account_oid
                         user_key.pubkey = pubkey
-                        user_key.created = np.datetime64(txaio.time_ns(), 'ns')
+                        user_key.created = datetime64(txaio.time_ns())
                         user_key.wallet_address = wallet_address
                         user_key.signature = signature
                         self._xbrmm.user_keys[txn, pubkey] = user_key

@@ -9,7 +9,7 @@ import uuid
 from typing import Optional, List
 from pprint import pformat
 
-import numpy as np
+from zlmdb import datetime64
 from sortedcontainers import SortedDict
 
 from autobahn import wamp
@@ -491,7 +491,7 @@ class RouterClusterManager(object):
 
         obj.oid = uuid.uuid4()
         obj.status = cluster.STATUS_BY_NAME['STOPPED']
-        obj.changed = np.datetime64(time_ns(), 'ns')
+        obj.changed = datetime64(time_ns())
 
         if details and details.caller_authid:
             with self.gdb.begin() as txn:

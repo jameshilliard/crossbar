@@ -24,7 +24,6 @@ import cfxdb.xbr.token
 import cfxdb.xbrmm.transaction
 
 import pyqrcode
-import numpy as np
 
 import web3
 import eth_keys
@@ -830,7 +829,7 @@ class MarketMaker(object):
 
             # ok, all good, create and persist the key offer:
             offer = cfxdb.xbrmm.Offer()
-            offer.timestamp = np.datetime64(now, 'ns')
+            offer.timestamp = zlmdb.datetime64(now)
             offer.offer = uuid.uuid4()
 
             # FIXME: finally nail what/how we track/map
@@ -842,11 +841,11 @@ class MarketMaker(object):
             offer.key = key_id
             offer.api = api_id
             offer.uri = uri
-            offer.valid_from = np.datetime64(valid_from, 'ns') if valid_from else None
+            offer.valid_from = zlmdb.datetime64(valid_from) if valid_from else None
             offer.signature = delegate_signature
             offer.price = price
             offer.categories = categories
-            offer.expires = np.datetime64(expires, 'ns') if expires else None
+            offer.expires = zlmdb.datetime64(expires) if expires else None
             offer.copies = copies
             offer.remaining = copies
 
@@ -1015,7 +1014,7 @@ class MarketMaker(object):
             assert offer
 
             # we won't delete the offer (that would destroy information), but set the offered expired
-            offer.expires = np.datetime64(time_ns(), 'ns')
+            offer.expires = zlmdb.datetime64(time_ns())
 
         offer_revoked = offer.marshal()
         if self._market_session:
@@ -1063,9 +1062,9 @@ class MarketMaker(object):
         if not offer.price:
             raise NotImplementedError('dynamic key pricing not implemented')
 
-        now = np.datetime64(time_ns(), 'ns')
+        now = zlmdb.datetime64(time_ns())
         if offer.expires and offer.expires < now:
-            expired_for = str(np.timedelta64(now - offer.expires, 's'))
+            expired_for = str((int(now) - int(offer.expires)) * 1000000000)
             raise ApplicationError(
                 'xbr.error.offer_expired', 'the offer for key with ID "{}" already expired {} ({} ago)'.format(
                     key_id, offer.expires, expired_for))
@@ -1364,7 +1363,7 @@ class MarketMaker(object):
 
             transaction = cfxdb.xbrmm.Transaction()
             transaction.tid = uuid.uuid4()
-            transaction.created = np.datetime64(now, 'ns')
+            transaction.created = zlmdb.datetime64(now)
             transaction.created_payment_channel_seq = payment_balance.seq
             transaction.created_paying_channel_seq = paying_balance.seq
             transaction.amount = amount_paid
@@ -1442,7 +1441,7 @@ class MarketMaker(object):
                     paying_balance = self._schema.paying_balances[txn, paying_channel_oid]
 
                     transaction.status = cfxdb.xbrmm.Transaction.STATUS_FAILED
-                    transaction.completed = np.datetime64(time_ns(), 'ns')
+                    transaction.completed = zlmdb.datetime64(time_ns())
                     transaction.completed_payment_channel_seq = payment_balance.seq
                     transaction.completed_paying_channel_seq = paying_balance.seq
                     transaction.result_len = None
@@ -1489,7 +1488,7 @@ class MarketMaker(object):
             paying_balance = self._schema.paying_balances[txn, paying_channel_oid]
 
             transaction.status = cfxdb.xbrmm.Transaction.STATUS_SUCCESS
-            transaction.completed = np.datetime64(time_ns(), 'ns')
+            transaction.completed = zlmdb.datetime64(time_ns())
             transaction.completed_payment_channel_seq = payment_balance.seq
             transaction.completed_paying_channel_seq = paying_balance.seq
             self._schema.transactions[txn, transaction.tid] = transaction
@@ -1992,8 +1991,8 @@ class MarketMaker(object):
             raise ApplicationError("xbr.marketmaker.error.invalid_delegate_adr",
                                    "Delegate address must be if length 20 was {}".format(len(delegate_adr)))
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
         channels = []
         with self._db.begin() as txn:
             if channel_type == cfxdb.xbrmm.ChannelType.PAYMENT:
@@ -2037,8 +2036,8 @@ class MarketMaker(object):
             raise ApplicationError("xbr.marketmaker.error.invalid_member_adr",
                                    "Delegate address must be if length 20 was {}".format(len(member_adr)))
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
         channels = []
         with self._db.begin() as txn:
             if channel_type == cfxdb.xbrmm.ChannelType.PAYMENT:
@@ -2254,8 +2253,8 @@ class MarketMaker(object):
             delegate_adr) == 20, 'delegate_adr must be bytes[20], but was "{}"'.format(delegate_adr)
         assert channel_type in ['payment', 'paying'], 'invalid channel_type "{}"'.format(channel_type)
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
         channel_oid, channel, balance = None, None, None
         with self._db.begin() as txn:
 
@@ -2630,8 +2629,8 @@ class MarketMaker(object):
 
         assert owner_adr_hex == owner_adr_authid
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
 
         with self._xbrmm_db.begin() as txn:
             catalogs = self._xbr.idx_catalogs_by_owner.select(txn,

@@ -9,7 +9,7 @@ import uuid
 from pprint import pformat
 from typing import Optional, List, Dict, Tuple
 
-import numpy as np
+from zlmdb import datetime64
 
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
@@ -827,7 +827,7 @@ class WebClusterManager(object):
 
         obj.oid = uuid.uuid4()
         obj.status = cluster.STATUS_BY_NAME['STOPPED']
-        obj.changed = np.datetime64(time_ns(), 'ns')
+        obj.changed = datetime64(time_ns())
 
         if details and details.caller_authid:
             with self.gdb.begin() as txn:

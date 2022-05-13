@@ -18,7 +18,6 @@ from pathlib import Path
 
 import cbor2
 import nacl
-import numpy as np
 
 from autobahn import wamp, util
 from autobahn.twisted.wamp import ApplicationSession
@@ -909,7 +908,7 @@ class DomainController(ApplicationSession):
     @inlineCallbacks
     def _do_metering(self, started):
         self.log.debug('Usage metering: aggregating heartbeat records .. [started="{started}", thread_id={thread_id}]',
-                       started=np.datetime64(started, 'ns'),
+                       started=zlmdb.datetime64(started),
                        thread_id=threading.get_ident())
 
         # FIXME: make this tunable from the master node config
@@ -931,23 +930,23 @@ class DomainController(ApplicationSession):
                     if not last_ts or ts < last_ts:
                         last_ts = ts
                 if not last_ts:
-                    last_ts = np.datetime64(np.datetime64(time_ns(), 'ns') - np.timedelta64(agg_mins, 'm'), 'ns')
+                    last_ts = zlmdb.datetime64(time_ns() - (agg_mins * 60000000000))
 
-                last_ts = np.datetime64(last_ts.astype('datetime64[m]'), 'ns')
+                last_ts = zlmdb.datetime64(int(last_ts) * 60000000000)
                 self.log.debug('Usage metering: first metering timestamp set to "{last_ts}"', last_ts=last_ts)
             else:
                 self.log.debug('Usage metering: last metering timestamp stored is "{last_ts}"', last_ts=last_ts)
 
-            until_ts = np.datetime64(last_ts + np.timedelta64(agg_mins, 'm'), 'ns')
+            until_ts = zlmdb.datetime64(last_ts + (agg_mins * 60000000000))
 
-            while until_ts < np.datetime64(time_ns(), 'ns'):
+            while until_ts < zlmdb.datetime64(time_ns()):
                 intervals.append((last_ts, until_ts))
                 self.log.debug('Usage metering: aggregation interval ("{last_ts}", "{until_ts}") appended',
                                last_ts=last_ts,
                                until_ts=until_ts)
 
                 last_ts = until_ts
-                until_ts = np.datetime64(last_ts + np.timedelta64(agg_mins, 'm'), 'ns')
+                until_ts = zlmdb.datetime64(last_ts + (agg_mins * 60000000000))
 
         cnt_new = 0
 
@@ -1025,7 +1024,7 @@ class DomainController(ApplicationSession):
                         self.log.debug(
                             'Usage metering: aggregated and stored period from {from_ts} to {until_ts} ({duration}) usage metering data for mrealm "{mrealm_id}"',
                             mrealm_id=mrealm_id,
-                            duration=str(np.timedelta64(until_ts - from_ts, 's')),
+                            duration=str(until_ts - from_ts),
                             from_ts=from_ts,
                             until_ts=until_ts)
                         self.log.debug('Usage metering data:\n{usage}', usage=pprint.pformat(usage.marshal()))
@@ -1041,13 +1040,13 @@ class DomainController(ApplicationSession):
     @inlineCallbacks
     def _submit_metering(self, started, filter_status=[1], limit=None):
         self.log.debug('Usage metering: submitting metering records .. [started="{started}"]',
-                       started=np.datetime64(started, 'ns'))
+                       started=zlmdb.datetime64(started))
 
         # collects keys in table "schema.usage" for metering records to be submitted
         keys = []
 
         # we only submit meterings up to 24h old
-        from_ts = np.datetime64(np.datetime64(time_ns(), 'ns') - np.timedelta64(24, 'h'), 'ns')
+        from_ts = zlmdb.datetime64(time_ns() - (60000000000 * 60 * 24))
         from_key = (from_ts, uuid.UUID(bytes=b'\x00' * 16))
 
         with self.db.begin() as txn:
@@ -1106,7 +1105,7 @@ class DomainController(ApplicationSession):
                 # self.log.failure()
                 rec.status = 3
                 rec.status_message = 'failed to submit metering record: {}'.format(e)
-                rec.processed = np.datetime64(time_ns(), 'ns')
+                rec.processed = zlmdb.datetime64(time_ns())
                 failed += 1
                 self.log.warn('Usage metering: failed to submit metering record for "{timestamp}" - "{errmsg}"',
                               timestamp=rec.timestamp,
@@ -1117,12 +1116,12 @@ class DomainController(ApplicationSession):
                 except Exception as e:
                     rec.status = 3
                     rec.status_message = 'invalid response from metering service: {}'.format(e)
-                    rec.processed = np.datetime64(time_ns(), 'ns')
+                    rec.processed = zlmdb.datetime64(time_ns())
                     failed += 1
                     self.log.log_failure()
                 else:
                     rec.status = 2
-                    rec.processed = np.datetime64(time_ns(), 'ns')
+                    rec.processed = zlmdb.datetime64(time_ns())
                     rec.metering_id = metering_id
                     success += 1
                     self.log.debug(

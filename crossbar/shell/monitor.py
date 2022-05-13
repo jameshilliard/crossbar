@@ -8,7 +8,7 @@
 import sys
 from pprint import pprint
 # import iso8601
-import numpy as np
+from zlmdb import datetime64
 
 # http://babel.pocoo.org/en/latest/dates.html
 # from babel.dates import get_timezone
@@ -152,8 +152,8 @@ def twisted_main(reactor, stdscr=None, mrealms=None, management_url=None, privke
                             # tz = get_timezone('Europe/Berlin')
                             # started = format_datetime(iso8601.parse_date(node_status['started']), tzinfo=tz, locale='de_DE', format='long')
 
-                            last_heartbeat = np.datetime64(node['timestamp'], 'ns')
-                            now = np.datetime64(time_ns(), 'ns')
+                            last_heartbeat = datetime64(node['timestamp'])
+                            now = datetime64(time_ns())
                             if now > last_heartbeat:
                                 last_heartbeat_ago = str((now - last_heartbeat).astype("timedelta64[s]"))
                             else:

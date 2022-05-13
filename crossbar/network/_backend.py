@@ -26,7 +26,6 @@ import cfxdb.xbr.member
 import cfxdb.xbr.token
 import multihash
 import cbor2
-import numpy as np
 from validate_email import validate_email
 
 import cid
@@ -404,7 +403,7 @@ class Backend(object):
                 else:
                     member = cfxdb.xbr.member.Member()
                     member.address = member_adr
-                    member.timestamp = np.datetime64(time_ns(), 'ns')
+                    member.timestamp = zlmdb.datetime64(time_ns())
                     member.registered = args.registered
                     member.eula = args.eula
                     member.profile = args.profile
@@ -471,7 +470,7 @@ class Backend(object):
                 else:
                     market = cfxdb.xbr.market.Market()
                     market.market = market_id
-                    market.timestamp = np.datetime64(time_ns(), 'ns')
+                    market.timestamp = zlmdb.datetime64(time_ns())
 
                     # FIXME
                     # market.created = args.created
@@ -536,7 +535,7 @@ class Backend(object):
                                   tx_hash=hlid('0x' + binascii.b2a_hex(transactionHash).decode()))
                 else:
                     actor = cfxdb.xbr.actor.Actor()
-                    actor.timestamp = np.datetime64(time_ns(), 'ns')
+                    actor.timestamp = zlmdb.datetime64(time_ns())
                     actor.market = market_id
                     actor.actor = actor_adr
                     actor.actor_type = actor_type
@@ -676,7 +675,7 @@ class Backend(object):
 
         with self._db.begin(write=True) as txn:
             block = cfxdb.xbr.block.Block()
-            block.timestamp = np.datetime64(time_ns(), 'ns')
+            block.timestamp = zlmdb.datetime64(time_ns())
             block.block_number = block_number
             # FIXME
             # block.block_hash = bytes()
@@ -1085,7 +1084,7 @@ class Backend(object):
 
             vaction = VerifiedAction()
             vaction.oid = vaction_oid
-            vaction.created = np.datetime64(onboarded, 'ns')
+            vaction.created = zlmdb.datetime64(onboarded)
             vaction.vtype = VerifiedAction.VERIFICATION_TYPE_ONBOARD_MEMBER
             vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
             vaction.vcode = vaction_code
@@ -1160,7 +1159,7 @@ class Backend(object):
                 else:
                     account = Account()
                     account.oid = uuid.UUID(bytes=vaction.verified_data['onboard_account_oid'])
-                    account.created = np.datetime64(time_ns(), 'ns')
+                    account.created = zlmdb.datetime64(time_ns())
                     account.username = onboard_member_name
                     account.email = vaction.verified_data['onboard_member_email']
                     account.wallet_type = vaction.verified_data['onboard_wallet_type']
@@ -1348,7 +1347,7 @@ class Backend(object):
         with self._db.begin(write=True) as txn:
             vaction = VerifiedAction()
             vaction.oid = vaction_oid
-            vaction.created = np.datetime64(timestamp, 'ns')
+            vaction.created = zlmdb.datetime64(timestamp)
             vaction.vtype = VerifiedAction.VERIFICATION_TYPE_LOGIN_MEMBER
             vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
             vaction.vcode = vaction_code
@@ -1429,7 +1428,7 @@ class Backend(object):
 
                 userkey = UserKey()
                 userkey.pubkey = vaction.verified_data['login_client_pubkey']
-                userkey.created = np.datetime64(time_ns(), 'ns')
+                userkey.created = zlmdb.datetime64(time_ns())
                 userkey.owner = account.oid
 
                 # store (additional) user key record (associated with user account)
@@ -1553,7 +1552,7 @@ class Backend(object):
                 if new_value is None:
                     del self._meta.attributes[txn, (table_oid, market_oid, attribute_name)]
                 else:
-                    attribute.modified = np.datetime64(time_ns(), 'ns')
+                    attribute.modified = zlmdb.datetime64(time_ns())
                     attribute.value = attributes[attribute_name]
                     self._meta.attributes[txn, (table_oid, market_oid, attribute_name)] = attribute
 
@@ -1704,7 +1703,7 @@ class Backend(object):
                               key_name=k)
 
         # db creation time
-        created = np.datetime64(time_ns(), 'ns')
+        created = zlmdb.datetime64(time_ns())
 
         # store verification data in database ..
         with self._db.begin(write=True) as txn:
@@ -1782,7 +1781,7 @@ class Backend(object):
                 market.market = uuid.UUID(bytes=vaction.verified_data['market_oid'])
 
                 # FIXME? which timestamp to use?
-                market.timestamp = np.datetime64(time_ns(), 'ns')
+                market.timestamp = zlmdb.datetime64(time_ns())
                 # market.timestamp = vaction.verified_data['timestamp']
 
                 # sequence is only determined by the on-chain contract once submitted
@@ -1814,7 +1813,7 @@ class Backend(object):
                         attribute.table_oid = table_oid
                         attribute.object_oid = object_oid
                         attribute.attribute = attribute_name
-                        attribute.modified = np.datetime64(time_ns(), 'ns')
+                        attribute.modified = zlmdb.datetime64(time_ns())
                         attribute.value = attribute_value
 
                         self._meta.attributes[txn, (table_oid, object_oid, attribute_name)] = attribute
@@ -1973,7 +1972,7 @@ class Backend(object):
         with self._db.begin(write=True) as txn:
             vaction = VerifiedAction()
             vaction.oid = vaction_oid
-            vaction.created = np.datetime64(created, 'ns')
+            vaction.created = zlmdb.datetime64(created)
             vaction.vtype = VerifiedAction.VERIFICATION_TYPE_JOIN_MARKET
             vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
             vaction.vcode = vaction_code
@@ -2051,7 +2050,7 @@ class Backend(object):
             else:
                 raise RuntimeError('invalid verification type {}'.format(vaction.vtype))
 
-            created = np.datetime64(vaction.verified_data['created'], 'ns')
+            created = zlmdb.datetime64(vaction.verified_data['created'])
             member_adr = vaction.verified_data['member_adr']
             member_oid = uuid.UUID(bytes=vaction.verified_data['member_oid'])
             market_oid = uuid.UUID(bytes=vaction.verified_data['market_oid'])
@@ -2193,7 +2192,7 @@ class Backend(object):
         with self._db.begin(write=True) as txn:
             vaction = VerifiedAction()
             vaction.oid = vaction_oid
-            vaction.created = np.datetime64(created, 'ns')
+            vaction.created = zlmdb.datetime64(created)
             vaction.vtype = VerifiedAction.VERIFICATION_TYPE_CREATE_CATALOG
             vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
             vaction.vcode = vaction_code
@@ -2267,7 +2266,7 @@ class Backend(object):
             else:
                 raise RuntimeError('invalid verification type {}'.format(vaction.vtype))
 
-        created = np.datetime64(vaction.verified_data['created'], 'ns')
+        created = zlmdb.datetime64(vaction.verified_data['created'])
         member_adr = vaction.verified_data['member_adr']
         member_oid = uuid.UUID(bytes=vaction.verified_data['member_oid'])
         catalog_oid = uuid.UUID(bytes=vaction.verified_data['catalog_oid'])
@@ -2409,7 +2408,7 @@ class Backend(object):
         with self._db.begin(write=True) as txn:
             vaction = VerifiedAction()
             vaction.oid = vaction_oid
-            vaction.created = np.datetime64(created, 'ns')
+            vaction.created = zlmdb.datetime64(created)
             vaction.vtype = VerifiedAction.VERIFICATION_TYPE_CREATE_CATALOG
             vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
             vaction.vcode = vaction_code
@@ -2483,7 +2482,7 @@ class Backend(object):
             else:
                 raise RuntimeError('invalid verification type {}'.format(vaction.vtype))
 
-        created = np.datetime64(vaction.verified_data['created'], 'ns')
+        created = zlmdb.datetime64(vaction.verified_data['created'])
         member_adr = vaction.verified_data['member_adr']
         member_oid = uuid.UUID(bytes=vaction.verified_data['member_oid'])
         catalog_oid = uuid.UUID(bytes=vaction.verified_data['catalog_oid'])
@@ -2494,7 +2493,7 @@ class Backend(object):
         api.catalog_oid = catalog_oid
         api.owner = member_adr
         api.published = vaction.verified_data['block_number']
-        api.timestamp = np.datetime64(time_ns(), 'ns')
+        api.timestamp = zlmdb.datetime64(time_ns())
 
         with self._db.begin(write=True) as txn:
             self._xbr.apis[txn, api_oid] = api

@@ -7,7 +7,7 @@
 
 import pprint
 
-import numpy as np
+from zlmdb import datetime64
 
 from twisted.internet.defer import inlineCallbacks, succeed
 from twisted.internet.task import LoopingCall
@@ -358,7 +358,7 @@ class NodeManagementBridgeSession(ApplicationSession):
                                                 obj,
                                                 options=PublishOptions(acknowledge=True))
                     self.log.debug('Node heartbeat sent [node_id="{node_id}", timestamp="{timestamp}", seq={seq}]',
-                                   timestamp=np.datetime64(obj['timestamp'], 'ns'),
+                                   timestamp=datetime64(obj['timestamp']),
                                    seq=obj['seq'],
                                    node_id=self._node_id,
                                    obj=obj)
@@ -455,7 +455,7 @@ class NodeManagementBridgeSession(ApplicationSession):
                                 'Worker heartbeat sent [node_id="{node_id}", worker_id="{worker_id}", timestamp="{timestamp}", seq={seq}]',
                                 node_id=self._node_id,
                                 worker_id=worker_id,
-                                timestamp=np.datetime64(worker_status['timestamp'], 'ns'),
+                                timestamp=datetime64(worker_status['timestamp']),
                                 seq=worker_status['seq'])
                             self.log.debug('{heartbeat}', heartbeat=pprint.pformat(worker_status))
                         else:

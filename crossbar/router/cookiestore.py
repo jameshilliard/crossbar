@@ -14,8 +14,6 @@ from typing import Optional, Tuple, Dict, Any, List, Set
 
 from http import cookies as http_cookies
 
-import numpy as np
-
 import zlmdb
 
 import txaio

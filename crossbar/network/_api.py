@@ -22,7 +22,6 @@ from txaio import time_ns
 
 from twisted.internet.threads import deferToThread
 
-import numpy as np
 import pyqrcode
 
 from autobahn.wamp.types import RegisterOptions, CallResult, PublishOptions, CallDetails
@@ -1041,8 +1040,8 @@ class Network(ApplicationSession):
         if member_oid_ != member_oid_from_authid:
             raise RuntimeError('only own information can be accessed!')
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
 
         pubkeys = []
         with self._db.begin() as txn:
@@ -1623,8 +1622,8 @@ class Network(ApplicationSession):
         if owner_oid_ != member_oid_from_authid_:
             raise RuntimeError('only own information can be accessed!')
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
 
         markets = []
         with self._db.begin() as txn:
@@ -1732,8 +1731,8 @@ class Network(ApplicationSession):
         # if actor_oid_ != member_oid_from_authid_:
         #     raise RuntimeError('only own information can be accessed!')
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
 
         markets = []
         with self._db.begin() as txn:
@@ -1776,8 +1775,8 @@ class Network(ApplicationSession):
         # member_oid_from_authid_ = extract_member_oid(details)
         # coin_oid = uuid.UUID(bytes=coin_oid)
         #
-        # t_zero = np.datetime64(0, 'ns')
-        # t_now = np.datetime64(time_ns(), 'ns')
+        # t_zero = zlmdb.datetime64(0)
+        # t_now = zlmdb.datetime64(time_ns())
         #
         # markets = []
         # with self._db.begin() as txn:
@@ -2197,8 +2196,8 @@ class Network(ApplicationSession):
         if member_oid_ != member_oid_from_authid:
             raise RuntimeError('only own catalogs can be accessed!')
 
-        t_zero = np.datetime64(0, 'ns')
-        t_now = np.datetime64(time_ns(), 'ns')
+        t_zero = zlmdb.datetime64(0)
+        t_now = zlmdb.datetime64(time_ns())
 
         catalogs = []
         with self._db.begin() as txn:

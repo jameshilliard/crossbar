@@ -21,7 +21,7 @@ from twisted.web.wsgi import WSGIResource
 
 from flask import Flask, request, session, render_template, redirect
 
-import numpy as np
+from zlmdb import datetime64
 from txaio import time_ns
 from autobahn.util import generate_activation_code
 
@@ -201,7 +201,7 @@ def page_xbr_submit_onboard():
 
         vaction = VerifiedAction()
         vaction.oid = vaction_oid
-        vaction.created = np.datetime64(time_ns(), 'ns')
+        vaction.created = datetime64(time_ns())
         vaction.vtype = VerifiedAction.VERIFICATION_TYPE_ONBOARD_MEMBER
         vaction.vstatus = VerifiedAction.VERIFICATION_STATUS_PENDING
         vaction.vcode = vaction_code
