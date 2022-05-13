@@ -10,7 +10,6 @@ from collections import deque
 from typing import Dict, List, Any, Optional, Tuple
 
 import zlmdb
-import numpy as np
 
 from txaio import use_twisted  # noqa
 from txaio import make_logger, time_ns
@@ -203,7 +202,7 @@ class RealmStoreDatabase(object):
 
         ses = cfxdb.realmstore.Session()
         ses.oid = uuid.uuid4()
-        ses.joined_at = np.datetime64(time_ns(), 'ns')
+        ses.joined_at = zlmdb.datetime64(time_ns())
         ses.session = details.session
         ses.realm = details.realm
         ses.authid = details.authid
@@ -260,13 +259,13 @@ class RealmStoreDatabase(object):
         _session_id = session._session_id
 
         # FIXME: move left_at to autobahn.wamp.types.CloseDetails
-        _left_at = np.datetime64(time_ns(), 'ns')
+        _left_at = zlmdb.datetime64(time_ns())
 
         # lookup session by WAMP session ID and find the most recent session
         # according to joined_at timestamp
         session_obj = None
-        _from_key = (_session_id, np.datetime64(0, 'ns'))
-        _to_key = (_session_id, np.datetime64(time_ns(), 'ns'))
+        _from_key = (_session_id, zlmdb.datetime64(0))
+        _to_key = (_session_id, zlmdb.datetime64(time_ns()))
         for session_oid in self._schema.idx_sessions_by_session_id.select(txn,
                                                                           from_key=_from_key,
                                                                           to_key=_to_key,
@@ -301,10 +300,10 @@ class RealmStoreDatabase(object):
         Implements :meth:`crossbar._interfaces.IRealmStore.get_session_by_session_id`
         """
         if joined_before:
-            _joined_before = np.datetime64(joined_before, 'ns')
+            _joined_before = zlmdb.datetime64(joined_before)
         else:
-            _joined_before = np.datetime64(time_ns(), 'ns')
-        _from_key = (session_id, np.datetime64(0, 'ns'))
+            _joined_before = zlmdb.datetime64(time_ns())
+        _from_key = (session_id, zlmdb.datetime64(0))
         _to_key = (session_id, _joined_before)
 
         # check if we have a record store for the session
@@ -463,7 +462,7 @@ class RealmStoreDatabase(object):
         # evt.retained = None
         # evt.acknowledged_delivery = None
 
-        evt_key = (evt.subscription, np.datetime64(evt.timestamp, 'ns'))
+        evt_key = (evt.subscription, zlmdb.datetime64(evt.timestamp))
 
         self._schema.events[txn, evt_key] = evt
 
@@ -492,9 +491,9 @@ class RealmStoreDatabase(object):
         assert limit is None or type(limit) == int
 
         # FIXME
-        # from_key = (subscription_id, np.datetime64(from_ts, 'ns'))
+        # from_key = (subscription_id, zlmdb.datetime64(from_ts))
         from_key = (subscription_id, from_ts)
-        # to_key = (subscription_id, np.datetime64(until_ts, 'ns'))
+        # to_key = (subscription_id, zlmdb.datetime64(until_ts))
         to_key = (subscription_id, until_ts)
 
         with self._db.begin() as txn:

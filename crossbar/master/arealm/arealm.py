@@ -10,8 +10,6 @@ import uuid
 from typing import Optional, List, Dict
 from pprint import pformat
 
-import numpy as np
-
 import cfxdb.mrealm.types
 from autobahn import wamp
 from autobahn.wamp.exception import ApplicationError
@@ -1350,7 +1348,7 @@ class ApplicationRealmManager(object):
 
         # set initial status of application realm
         obj.status = ApplicationRealm.STATUS_STOPPED
-        obj.changed = np.datetime64(time_ns(), 'ns')
+        obj.changed = zlmdb.datetime64(time_ns())
 
         with self.db.begin(write=True) as txn:
             self.schema.arealms[txn, obj.oid] = obj
@@ -1497,7 +1495,7 @@ class ApplicationRealmManager(object):
             arealm.status = cfxdb.mrealm.types.STATUS_STARTING
             arealm.workergroup_oid = router_workergroup_oid_
             arealm.webcluster_oid = webcluster_oid_
-            arealm.changed = np.datetime64(time_ns(), 'ns')
+            arealm.changed = zlmdb.datetime64(time_ns())
 
             self.schema.arealms[txn, arealm_oid_] = arealm
 
@@ -1564,7 +1562,7 @@ class ApplicationRealmManager(object):
                 raise ApplicationError('crossbar.error.cannot_stop', emsg)
 
             arealm.status = cfxdb.mrealm.types.STATUS_STOPPING
-            arealm.changed = np.datetime64(time_ns(), 'ns')
+            arealm.changed = zlmdb.datetime64(time_ns())
 
             self.schema.arealms[txn, arealm_oid_] = arealm
 
@@ -1779,7 +1777,7 @@ class ApplicationRealmManager(object):
             raise ApplicationError('crossbar.error.invalid_config', 'invalid configuration. {}'.format(e))
 
         obj.oid = uuid.uuid4()
-        obj.modified = np.datetime64(time_ns(), 'ns')
+        obj.modified = zlmdb.datetime64(time_ns())
         obj.arealm_oid = arealm_oid_
         obj.role_oid = role_oid_
 
@@ -1869,8 +1867,8 @@ class ApplicationRealmManager(object):
             res = []
             for credential_oid in self.schema.idx_credentials_by_principal.select(
                     txn,
-                    from_key=(principal_oid_, np.datetime64(0, 'ns')),
-                    to_key=(uuid.UUID(int=(int(principal_oid_) + 1)), np.datetime64(0, 'ns')),
+                    from_key=(principal_oid_, zlmdb.datetime64(0)),
+                    to_key=(uuid.UUID(int=(int(principal_oid_) + 1)), zlmdb.datetime64(0)),
                     return_keys=False):
                 res.append(str(credential_oid))
             return res
@@ -2013,7 +2011,7 @@ class ApplicationRealmManager(object):
                 raise ApplicationError('crossbar.error.invalid_config', 'invalid configuration. {}'.format(e))
 
             credential_.oid = uuid.uuid4()
-            credential_.created = np.datetime64(time_ns(), 'ns')
+            credential_.created = zlmdb.datetime64(time_ns())
             credential_.realm = arealm.name
             credential_.authid = principal.authid
             credential_.principal_oid = principal_oid_
@@ -2153,7 +2151,7 @@ class ApplicationRealmManager(object):
 
         obj = Role.parse(role)
         obj.oid = uuid.uuid4()
-        obj.created = np.datetime64(time_ns(), 'ns')
+        obj.created = zlmdb.datetime64(time_ns())
 
         with self.db.begin(write=True) as txn:
             self.schema.roles[txn, obj.oid] = obj
